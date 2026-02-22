@@ -58,8 +58,8 @@
   "devDependencies": {
     "@types/node": "^24.3.1",
     "@types/react": "^19.1.8",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
     "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^10.0.1",
     "react": "^19.1.0",
@@ -67,7 +67,7 @@
     "tsup": "^8.5.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.18"
   },
   "publishConfig": {
     "access": "public"
@@ -82,5 +82,8 @@
       "url": "https://github.com/sponsors/Plasius-LTD"
     }
   ],
+  "overrides": {
+    "minimatch": "^10.2.1"
+  },
   "private": false
 }
