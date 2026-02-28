@@ -31,7 +31,9 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "prepare": "npm run build",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "pack:check": "node scripts/verify-public-package.cjs",
+    "prepublishOnly": "npm run build && npm run pack:check"
   },
   "keywords": [
     "auth",
