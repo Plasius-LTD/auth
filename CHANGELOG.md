@@ -12,6 +12,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - Normalized changelog history by removing duplicate sections and replacing placeholder-only release notes with concrete entries.
 - Expanded README with a detailed server integration contract: required auth endpoints, request/response behavior, CSRF/cookie expectations, and cross-origin deployment notes.
 - Added an OAuth 2.0 standards-alignment section in README with direct RFC links and a backend compliance checklist.
+- Hardened `createAuthorizedFetch()` to prevent auth-endpoint retry storms by limiting refresh retry loops and introducing cooldown logic after refresh failure or repeated `401`.
+- Added randomized logarithmic backoff for refresh outage responses (`429`/`5xx`) so repeated failures progressively reduce auth-endpoint request pressure.
 
 ## [1.0.2] - 2026-02-22
 

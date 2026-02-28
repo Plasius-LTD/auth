@@ -111,6 +111,9 @@ Behavior:
 - Reads `csrf-token` from browser cookies and sends it as `x-csrf-token` when present.
 - On `401`, calls `POST /oauth/refresh-token` and retries the original request.
 - Deduplicates concurrent refresh calls with a shared promise.
+- Limits refresh to one retry cycle per request (prevents recursive retry loops).
+- Applies cooldown after refresh failure or repeated `401` so clients return failure instead of repeatedly hitting auth endpoints.
+- For outage responses (`429`/`5xx`) on refresh, uses randomized logarithmic backoff with an increasing cooldown window.
 - Honors `Retry-After` (seconds) from refresh responses before retrying.
 
 ### `useLogin()`
