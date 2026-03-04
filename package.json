@@ -1,6 +1,6 @@
 {
   "name": "@plasius/auth",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Authentication helpers and React context for Plasius applications.",
   "type": "module",
   "sideEffects": false,
@@ -57,7 +57,7 @@
   },
   "homepage": "https://github.com/Plasius-LTD/auth#readme",
   "dependencies": {
-    "@plasius/entity-manager": "^1.0.6"
+    "@plasius/entity-manager": "^1.0.10"
   },
   "peerDependencies": {
     "react": "^19.1.0"
