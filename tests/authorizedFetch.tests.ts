@@ -46,6 +46,9 @@ describe("authorizedFetch", () => {
     expect(response.ok).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock.mock.calls[1][0]).toBe("/oauth/refresh-token");
+    expect(fetchMock.mock.calls[1][1]?.headers).toMatchObject({
+      "x-csrf-token": "xyz",
+    });
     expect(fetchMock.mock.calls[2][1]?.headers).toMatchObject({
       "x-csrf-token": "xyz",
     });

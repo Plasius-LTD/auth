@@ -84,14 +84,17 @@ function applyRefreshCooldown(options: {
 }
 
 export function createAuthorizedFetch() {
-  const fetchWithAuth = async (
-    input: RequestInfo,
-    init: RequestInit
-  ): Promise<Response> => {
-    const csrfToken = document.cookie
+  const getCsrfToken = (): string | undefined =>
+    document.cookie
       .split("; ")
       .find((row) => row.startsWith("csrf-token="))
       ?.split("=")[1];
+
+  const fetchWithAuth = async (
+    input: RequestInfo,
+    init: RequestInit = {}
+  ): Promise<Response> => {
+    const csrfToken = getCsrfToken();
 
     return fetch(input, {
       ...init,
@@ -105,9 +108,8 @@ export function createAuthorizedFetch() {
 
   const requestRefresh = async (): Promise<Response> => {
     if (!refreshPromise) {
-      refreshPromise = fetch(`/oauth/refresh-token`, {
+      refreshPromise = fetchWithAuth(`/oauth/refresh-token`, {
         method: "POST",
-        credentials: "include",
       }).finally(() => {
         refreshPromise = null;
       });

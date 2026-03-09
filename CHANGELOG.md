@@ -7,13 +7,13 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
-  - (placeholder)
+  - Added regression coverage to verify refresh-token requests carry the CSRF header during automatic session renewal.
 
 - **Changed**
   - (placeholder)
 
 - **Fixed**
-  - (placeholder)
+  - Reused the standard authenticated fetch path for `/oauth/refresh-token` so automatic session refresh includes the CSRF header and credentials consistently.
 
 - **Security**
   - (placeholder)
