@@ -94,5 +94,8 @@
   "overrides": {
     "minimatch": "^10.2.1"
   },
-  "private": false
+  "private": false,
+  "engines": {
+    "node": ">=24"
+  }
 }
