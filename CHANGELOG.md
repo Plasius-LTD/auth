@@ -7,6 +7,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [1.0.10] - 2026-04-02
+
+- **Added**
   - Added regression coverage to verify refresh-token requests carry the CSRF header during automatic session renewal.
 
 - **Changed**
@@ -108,7 +122,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 > Tip: Use Conventional Commits in PR titles/bodies to make changelog updates easier.
 
-[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.0.9...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.0.10...HEAD
 [1.0.2]: https://github.com/Plasius-LTD/auth/compare/858d03c...fdf8d70
 [1.0.1]: https://github.com/Plasius-LTD/auth/compare/v1.0.0...858d03c
 [1.0.0]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.0
@@ -116,3 +130,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [1.0.4]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.4
 [1.0.5]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.5
 [1.0.9]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.9
+[1.0.10]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.10
