@@ -10,6 +10,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Changed**
+  - Refreshed the published `@plasius/entity-manager` dependency to `1.0.21`.
   - (placeholder)
 
 - **Fixed**
