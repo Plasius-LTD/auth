@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 let createAuthorizedFetch: typeof import("../src/lib/authorizedFetch.js").createAuthorizedFetch;
+let parseRetryAfterMs: typeof import("../src/lib/authorizedFetch.js").parseRetryAfterMs;
 
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
@@ -8,9 +9,16 @@ global.fetch = fetchMock;
 describe("authorizedFetch", () => {
   beforeEach(async () => {
     vi.resetModules();
-    ({ createAuthorizedFetch } = await import("../src/lib/authorizedFetch.js"));
+    ({ createAuthorizedFetch, parseRetryAfterMs } = await import("../src/lib/authorizedFetch.js"));
     fetchMock.mockReset();
     globalThis.document = { cookie: "" } as unknown as { cookie: string };
+  });
+
+  it("parses RFC 9110 Retry-After grammar strictly and caps waits", () => {
+    expect(parseRetryAfterMs("120")).toBe(120_000);
+    expect(parseRetryAfterMs("120junk")).toBeNull();
+    expect(parseRetryAfterMs("1.5")).toBeNull();
+    expect(parseRetryAfterMs("999999")).toBe(300_000);
   });
 
   it("adds csrf token header when cookie present", async () => {

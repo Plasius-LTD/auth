@@ -13,7 +13,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Fixed**
-  - (placeholder)
+  - Encode login return paths as UTF-8 RFC 4648 base64url and parse RFC 9110
+    `Retry-After` values strictly with a five-minute operational cap.
 
 - **Security**
   - (placeholder)

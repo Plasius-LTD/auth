@@ -11,24 +11,27 @@ const OUTAGE_BACKOFF_BASE_MS = 5_000;
 const OUTAGE_BACKOFF_MAX_MS = 120_000;
 const OUTAGE_JITTER_MIN = 0.75;
 const OUTAGE_JITTER_MAX = 1.25;
+const MAX_RETRY_AFTER_MS = 5 * 60 * 1000;
 
 export function useAuthorizedFetch() {
   return useCallback(createAuthorizedFetch(), []);
 }
 
-function parseRetryAfterMs(retryAfterValue: string | null): number | null {
+export function parseRetryAfterMs(retryAfterValue: string | null): number | null {
   if (!retryAfterValue) return null;
 
-  const retryAfterSeconds = parseInt(retryAfterValue, 10);
-  if (!Number.isNaN(retryAfterSeconds) && retryAfterSeconds > 0) {
-    return retryAfterSeconds * 1000;
+  if (/^(0|[1-9]\d*)$/u.test(retryAfterValue)) {
+    const retryAfterSeconds = Number(retryAfterValue);
+    return retryAfterSeconds > 0
+      ? Math.min(retryAfterSeconds * 1000, MAX_RETRY_AFTER_MS)
+      : null;
   }
 
   const retryAt = Date.parse(retryAfterValue);
   if (Number.isNaN(retryAt)) return null;
 
   const deltaMs = retryAt - Date.now();
-  return deltaMs > 0 ? deltaMs : null;
+  return deltaMs > 0 ? Math.min(deltaMs, MAX_RETRY_AFTER_MS) : null;
 }
 
 function isOutageStatus(status: number): boolean {
