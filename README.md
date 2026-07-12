@@ -114,13 +114,14 @@ Behavior:
 - Limits refresh to one retry cycle per request (prevents recursive retry loops).
 - Applies cooldown after refresh failure or repeated `401` so clients return failure instead of repeatedly hitting auth endpoints.
 - For outage responses (`429`/`5xx`) on refresh, uses randomized logarithmic backoff with an increasing cooldown window.
-- Honors `Retry-After` (seconds) from refresh responses before retrying.
+- Honors RFC 9110 `Retry-After` integer seconds or HTTP dates from refresh
+  responses, capped at five minutes; malformed values are ignored.
 
 ### `useLogin()`
 
 Returns a function that redirects to:
 
-- `/oauth/{provider}?state={base64(currentPath)}`
+- `/oauth/{provider}?state={base64url(UTF-8 currentPath)}`
 
 The provider identifier type comes from `@plasius/entity-manager` (`AuthProvider`), and is separate from this package's React `AuthProvider` component.
 
@@ -139,7 +140,12 @@ This package is frontend-only. It assumes your backend owns authentication and i
 
 ### End-to-End Flow
 
-1. User clicks login and `useLogin()` redirects browser to `GET /oauth/{provider}?state={base64(path)}`.
+1. User clicks login and `useLogin()` redirects browser to `GET /oauth/{provider}?state={base64url(UTF-8 path)}`.
+
+Runtime rollout inherits `governance.rfc-compliance-remediation.enabled`.
+Enabled consumers use strict retry parsing and Unicode-safe state encoding;
+rollback disables the flag and restores the prior package during the migration
+window.
 2. Backend starts OAuth with the provider, completes callback handling, then sets auth cookies.
 3. `AuthProvider` calls `GET /oauth/me` on mount to populate `userId`.
 4. API calls through `useAuthorizedFetch()` include cookies and optional `x-csrf-token`.
