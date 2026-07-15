@@ -7,16 +7,21 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
-  - (placeholder)
+  - Add public actor/subject principal, age-band, and age-assurance contracts to
+    `AuthContext`, including read-only `actor`, `subject`, and `principal` state.
 
 - **Changed**
-  - (placeholder)
+  - Preserve `userId` as the actor account alias while accepting canonical
+    `/oauth/me.principal`, a constrained plural migration alias, and legacy
+    `{ userId }` self-principal responses.
 
 - **Fixed**
   - (placeholder)
 
 - **Security**
-  - (placeholder)
+  - Fail closed on malformed, ambiguous, future-dated, expired, or
+    actor-mismatched principals; strip unknown role, raw-age, and provider data;
+    and remove raw account-ID session logging.
 
 ## [1.0.20] - 2026-07-12
 

@@ -44,6 +44,11 @@ import {
   useLogin,
   useLogout,
 } from "@plasius/auth";
+import type {
+  ActorSubjectPrincipal,
+  AgeAssuranceEvidence,
+  PrincipalReference,
+} from "@plasius/auth";
 ```
 
 ---
@@ -55,7 +60,7 @@ import { AuthProvider, useAuth, useLogin, useLogout } from "@plasius/auth";
 import type { AuthProvider as OAuthProviderId } from "@plasius/entity-manager";
 
 function AccountPanel() {
-  const { userId, validateSession } = useAuth();
+  const { userId, actor, subject, principal, validateSession } = useAuth();
   const login = useLogin();
   const logout = useLogout();
   const provider = "github" as OAuthProviderId;
@@ -63,6 +68,8 @@ function AccountPanel() {
   return (
     <div>
       <p>Signed in as: {userId ?? "anonymous"}</p>
+      <p>Acting for: {subject?.accountId ?? actor?.accountId ?? "nobody"}</p>
+      <p>Principal type: {principal?.principalType ?? "anonymous"}</p>
       <button onClick={() => login(provider)}>Log in</button>
       <button onClick={() => logout()}>Log out</button>
       <button onClick={() => validateSession()}>Revalidate session</button>
@@ -92,10 +99,22 @@ Provides auth state through context and runs session validation on mount.
 Returns:
 
 - `userId: string | null`
+- `actor: PrincipalReference | null`
+- `subject: PrincipalReference | null`
+- `principal: ActorSubjectPrincipal | null`
 - `setUserId(userId: string | null)`
 - `validateSession(): Promise<void>`
 
-`validateSession()` calls `GET /oauth/me` and updates `userId` from a `userId` field in the response body.
+`userId` remains a backwards-compatible alias for `actor.accountId`; it is
+never the delegated subject ID. `setUserId()` remains available for existing
+login integrations and creates a local self principal. It cannot select or
+change a subject.
+
+`validateSession()` calls `GET /oauth/me`, validates the complete response, and
+atomically updates `userId`, `actor`, `subject`, and `principal`. A malformed,
+ambiguous, expired, future-dated, or actor-mismatched response clears the auth
+state. The actor and subject are server-authoritative; this package does not add
+subject-selection headers to requests.
 
 ### `useAuthorizedFetch()`
 
@@ -147,7 +166,8 @@ Enabled consumers use strict retry parsing and Unicode-safe state encoding;
 rollback disables the flag and restores the prior package during the migration
 window.
 2. Backend starts OAuth with the provider, completes callback handling, then sets auth cookies.
-3. `AuthProvider` calls `GET /oauth/me` on mount to populate `userId`.
+3. `AuthProvider` calls `GET /oauth/me` on mount to populate the actor/subject
+   principal and the legacy actor alias `userId`.
 4. API calls through `useAuthorizedFetch()` include cookies and optional `x-csrf-token`.
 5. If a protected call returns `401`, package sends `POST /oauth/refresh-token` once for concurrent callers.
 6. On successful refresh, original request is retried automatically.
@@ -158,7 +178,7 @@ window.
 | Route | Method | Called by | Required behavior |
 | --- | --- | --- | --- |
 | `/oauth/{provider}` | `GET` | `useLogin()` | Start provider login flow; accept `state` query param. |
-| `/oauth/me` | `GET` | `AuthProvider.validateSession()` | Return `200` with JSON containing `userId` when authenticated, otherwise non-2xx (typically `401`). |
+| `/oauth/me` | `GET` | `AuthProvider.validateSession()` | Return `200` with a legacy `userId`, a validated `principal`, or both when authenticated; otherwise non-2xx (typically `401`). |
 | `/oauth/refresh-token` | `POST` | `createAuthorizedFetch()` after `401` | Attempt token/session refresh using cookies; return `2xx` on success, non-2xx on failure. |
 | `/oauth/logout` | `POST` | `useLogout()` | Invalidate session cookies/server session and return `2xx`/`204` when possible. |
 
@@ -172,7 +192,56 @@ window.
 }
 ```
 
+Legacy responses synthesize a self principal. Its `authenticatedAt` value is
+the time at which the client observed the valid response, because the legacy
+contract does not expose the server authentication time.
+
+Canonical actor/subject response:
+
+```json
+{
+  "userId": "guardian-account-001",
+  "principal": {
+    "actor": {
+      "accountId": "guardian-account-001",
+      "accountType": "user"
+    },
+    "subject": {
+      "accountId": "managed-child-001",
+      "accountType": "managed-child"
+    },
+    "principalType": "guardian-delegated",
+    "relationshipId": "guardian-relationship-001",
+    "authorizationVersion": 0,
+    "ageBand": "6-9",
+    "assurance": {
+      "level": "guardian-attested",
+      "method": "guardian-attestation",
+      "assertedAt": "2026-07-15T09:00:00.000Z",
+      "expiresAt": "2027-07-15T09:00:00.000Z"
+    },
+    "authenticatedAt": "2026-07-15T09:05:00.000Z"
+  }
+}
+```
+
+Supported age bands are `5`, `6-9`, `10-12`, `13-15`, `16-17`, and
+`18+`. `assurance` is age-assurance evidence, not MFA or authentication AAL.
+It deliberately excludes exact birth dates and provider payloads.
+An internal provider evidence reference may be omitted from this public
+principal after the server has validated and minimized the assurance record.
+
+During migration, `principals` is accepted as an alias only when it contains
+exactly one valid principal (either directly or as a one-element array). If
+both `principal` and `principals` are supplied, they must normalize to the same
+value. New integrations should emit only `principal`.
+
 `GET /oauth/me` should return `401` (or another non-2xx) when no valid session exists.
+
+For delegated principals, the backend must verify the relationship is active,
+`authorizationVersion` is current, age assurance is sufficient, and guardian
+step-up requirements are satisfied before emitting the response. Client-side
+shape validation is defense in depth and cannot replace server authorization.
 
 `POST /oauth/refresh-token` may optionally return a `Retry-After` response header (seconds).  
 If present and greater than zero, the package waits before retrying the original request.
@@ -182,7 +251,11 @@ If present and greater than zero, the package waits before retrying the original
 - Auth/session cookie must be sent on credentialed requests (`credentials: "include"` is always used).
 - For CSRF protection, expose a readable cookie named `csrf-token` if you want the package to send `x-csrf-token`.
 - `useAuthorizedFetch()` adds `x-csrf-token` only when the `csrf-token` cookie exists.
-- Refresh calls to `/oauth/refresh-token` do not include `x-csrf-token` automatically; protect this route with cookie policy and origin checks.
+- Actor/subject identity is read only from `/oauth/me`; no subject ID or
+  relationship is derived from browser-supplied headers.
+- Refresh calls use the same authorized wrapper and include `x-csrf-token` when
+  the readable cookie exists; also protect this route with cookie policy and
+  origin checks.
 - `useLogout()` uses authorized fetch, so logout receives `x-csrf-token` when available.
 
 ### Cross-Origin Deployment (If API and App Origins Differ)
@@ -205,10 +278,23 @@ Configure backend CORS and cookies for credentialed requests:
 
 - Implement all four routes above.
 - Issue and clear session cookies reliably.
-- Return `userId` from `/oauth/me` for authenticated sessions.
+- Return legacy `userId` and/or a server-authorized actor/subject `principal`
+  from `/oauth/me`; when both are present, `userId` must equal
+  `principal.actor.accountId`.
+- Reject stale delegated relationship versions on the server and never inherit
+  guardian roles into the child subject.
 - Return `401` for expired/invalid sessions.
 - Make `/oauth/refresh-token` idempotent and safe for concurrent requests.
 - Enforce CSRF/origin protections for state-changing endpoints.
+
+### Family-account rollout
+
+Delegated principal issuance is controlled by the parent feature flag
+`profile.family-accounts.enabled`, evaluated by the site backend. When disabled,
+the backend stops issuing new delegated sessions and continues returning safe
+self/legacy sessions. Consumer UI discoverability and entitlements remain the
+site capability layer's responsibility; this public package does not evaluate
+host feature flags or capabilities.
 
 ---
 
