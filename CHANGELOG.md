@@ -16,7 +16,9 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     `{ userId }` self-principal responses.
 
 - **Fixed**
-  - (placeholder)
+  - Route release preparation through the same configurable trusted self-hosted
+    runner policy as package publication while retaining fork-deny workflow
+    guards for task #26.
 
 - **Security**
   - Fail closed on malformed, ambiguous, future-dated, expired, or
