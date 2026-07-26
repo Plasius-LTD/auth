@@ -60,7 +60,10 @@ export interface ActorSubjectPrincipal {
 
 /** Public session shape retained by AuthContext. */
 export interface AuthSessionIdentity {
-  /** Backwards-compatible login/storage identifier; never use it as Token authority. */
+  /**
+   * Backwards-compatible active-subject identifier, or a versioned legacy
+   * storage alias. Never use it as Token authority.
+   */
   userId: string;
   principal: ActorSubjectPrincipal;
   /**
@@ -279,7 +282,7 @@ export function parseActorSubjectPrincipal(
     : undefined;
   if (
     hasAuthorizationVersion &&
-    (!Number.isSafeInteger(authorizationVersion) || (authorizationVersion as number) < 0)
+    (!Number.isSafeInteger(authorizationVersion) || (authorizationVersion as number) < 1)
   ) {
     return null;
   }
@@ -443,19 +446,19 @@ export function parseAuthMeResponse(
   const compatibilityAliasContract =
     hasCompatibilityMarkers
     && principal.principalType === "self"
-    && userId !== principal.actor.accountId;
+    && userId !== principal.subject.accountId;
   if (hasCompatibilityMarkers && !compatibilityAliasContract) return null;
 
   if (
     userId
-    && userId !== principal.actor.accountId
+    && userId !== principal.subject.accountId
     && !compatibilityAliasContract
   ) {
     return null;
   }
 
   return {
-    userId: userId ?? principal.actor.accountId,
+    userId: userId ?? principal.subject.accountId,
     authoritySource: "server-principal",
     principalContractVersion: compatibilityAliasContract
       ? COMPATIBILITY_PRINCIPAL_CONTRACT_VERSION
