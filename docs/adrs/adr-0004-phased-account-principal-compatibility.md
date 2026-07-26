@@ -14,13 +14,15 @@ data migration.
 
 Support an explicit versioned `/oauth/me` compatibility contract:
 
-- `userId` remains the legacy login/storage owner during the phased window.
+- `userId` normally identifies the active subject. For an explicit self
+  principal only, it may remain the legacy login/storage owner during the
+  phased window.
 - `principal.actor.accountId` and `principal.subject.accountId` carry canonical
   authority.
 - A differing `userId` is accepted only with
   `principalContractVersion: 2`, `userIdKind: "legacy-storage-owner"`, and an
   explicit self principal. The markers are invalid without a principal, when
-  `userId` already equals the canonical actor, or on a delegated principal.
+  `userId` already equals the canonical subject, or on a delegated principal.
 - The parser marks a validated explicit principal as `server-principal`.
   Legacy-only responses and local `setUserId` calls are marked
   `legacy-synthesized` and cannot establish Token or family authority.
@@ -28,7 +30,7 @@ Support an explicit versioned `/oauth/me` compatibility contract:
   responsible for signing and revalidating account mappings and relationship
   authorization versions.
 - Unknown versions, unknown alias kinds, partial or redundant markers,
-  marker-only responses, delegated marker use, and unversioned actor/user
+  marker-only responses, delegated marker use, and unversioned subject/user
   mismatches fail closed.
 
 The phased contract is additive. Existing non-sensitive consumers may continue

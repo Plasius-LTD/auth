@@ -16,9 +16,11 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     is normalized and always present.
 
 - **Changed**
-  - Preserve `userId` as the backwards-compatible login/storage identifier
-    while accepting canonical `/oauth/me.principal`, a constrained plural
-    migration alias, and legacy `{ userId }` self-principal responses.
+  - Bind ordinary `userId` to the active principal subject, including managed
+    children, while preserving a self account's backwards-compatible storage
+    identifier only through the explicit version-2 alias contract.
+  - Accept canonical `/oauth/me.principal`, a constrained plural migration
+    alias, and legacy `{ userId }` self-principal responses.
   - Keep all new principal and phased-authority properties optional and
     read-only on the broad `AuthContextType`, and keep phased metadata optional
     and read-only on `AuthSessionIdentity`, so 1.0.x structural mocks remain
@@ -32,12 +34,13 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - **Security**
   - Added fail-closed source and npm-package admission for the administrative contributor registry and pinned the CI/CD runtime to Node.js 24.18.0 LTS.
   - Fail closed on malformed, ambiguous, future-dated, expired, or
-    actor-mismatched principals; strip unknown role, raw-age, and provider data;
+    subject-mismatched principals; require positive delegated authorization
+    versions; strip unknown role, raw-age, and provider data;
     and remove raw account-ID session logging.
   - Mark legacy response synthesis and local `setUserId` state as non-authority;
     canonical Token/family consumers can require a server-issued principal.
   - Reject version-2 compatibility markers unless they accompany an explicit
-    self principal with a genuine legacy `userId`/canonical-actor mismatch.
+    self principal with a genuine legacy `userId`/canonical-subject mismatch.
   - Add an enforced public-type compatibility check for pre-phased context and
     session mock shapes.
 

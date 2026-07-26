@@ -24,7 +24,7 @@ const EMPTY_IDENTITY = {
 } as const;
 
 export interface AuthContextType {
-  /** Backwards-compatible login/storage ID; may be a versioned legacy alias. */
+  /** Active subject ID, or a versioned backwards-compatible storage alias. */
   userId: string | null;
   /** Additive actor reference; require `server-principal` before authorizing it. */
   readonly actor?: PrincipalReference | null;

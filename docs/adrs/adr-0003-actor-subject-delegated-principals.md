@@ -23,7 +23,7 @@ Add a structurally shared `ActorSubjectPrincipal` contract to `@plasius/auth`:
 - `self` requires equal user actor/subject references and carries no
   relationship authorization.
 - `guardian-delegated` requires a user actor, a different managed-child subject,
-  relationship ID, non-negative safe-integer authorization version, minor age
+  relationship ID, positive safe-integer authorization version, minor age
   band, age-assurance evidence, and a non-future authentication time.
 - Age assurance contains only level, method, timestamps, and an optional opaque
   evidence reference. Exact birth data and provider payloads are not retained.
@@ -39,7 +39,7 @@ agree. Any malformed or ambiguous actor/subject response fails closed.
 For backwards compatibility, `{ "userId": "..." }` synthesizes a self
 principal. The synthesized identity and local `setUserId` state are explicitly
 marked as compatibility state rather than server authority. `userId` normally
-matches `principal.actor.accountId`; the separately documented phased account
+matches `principal.subject.accountId`; the separately documented phased account
 contract permits a versioned legacy storage alias only for an explicit self
 principal while canonical authority is carried by the server principal.
 Delegated principals cannot use those compatibility markers. No subject setter
@@ -67,8 +67,9 @@ client API rollback.
 
 ## Consequences
 
-- Positive: Existing callers keep their `userId` behavior while new callers can
-  distinguish actor from subject.
+- Positive: Existing self-session callers keep their `userId` behavior, while
+  delegated callers receive the active child subject and can distinguish it
+  from the guardian actor.
 - Positive: Existing v1.0.20 structural context mocks remain assignable without
   adding principal properties.
 - Positive: Malformed identity data cannot silently fall back to a weaker
@@ -83,8 +84,9 @@ client API rollback.
 
 ## Alternatives Considered
 
-- Replace `userId` with the subject ID: Rejected because it breaks callers and
-  risks treating delegated child identity as the authenticated guardian.
+- Keep `userId` bound to the guardian actor during child delegation: Rejected
+  because legacy consumers could read or mutate guardian-owned data while the
+  active authorization subject is the child.
 - Let clients set a subject or send subject headers: Rejected because browser
   input cannot establish delegated authorization.
 - Put guardian roles in the principal: Rejected because it invites permission

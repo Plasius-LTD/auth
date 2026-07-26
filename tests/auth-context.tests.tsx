@@ -47,7 +47,7 @@ function delegatedPrincipal(
     },
     principalType: "guardian-delegated",
     relationshipId: "guardian-relationship-001",
-    authorizationVersion: 0,
+    authorizationVersion: 1,
     ageBand: "6-9",
     assurance: {
       level: "guardian-attested",
@@ -134,13 +134,13 @@ describe("parseAuthMeResponse", () => {
 
     const parsed = parseAuthMeResponse(
       {
-        userId: "guardian-account-001",
+        userId: "managed-child-001",
         principal,
       },
       NOW,
     );
 
-    expect(parsed?.userId).toBe("guardian-account-001");
+    expect(parsed?.userId).toBe("managed-child-001");
     expect(parsed?.principal).toEqual(delegatedPrincipal());
     expect(parsed?.principal).not.toHaveProperty("roles");
     expect(parsed?.principal.assurance).not.toHaveProperty("dateOfBirth");
@@ -191,6 +191,7 @@ describe("parseAuthMeResponse", () => {
       assertedAt: ASSERTED_AT,
       expiresAt: EXPIRES_AT,
     });
+    expect(parsed?.userId).toBe("managed-child-001");
   });
 
   it("accepts one plural alias and identical singular/plural values", () => {
@@ -213,7 +214,7 @@ describe("parseAuthMeResponse", () => {
           principal,
           principals: {
             ...principal,
-            authorizationVersion: 1,
+            authorizationVersion: 2,
           },
         },
         NOW,
@@ -222,11 +223,11 @@ describe("parseAuthMeResponse", () => {
     expect(parseAuthMeResponse({ principals: [principal, principal] }, NOW)).toBeNull();
   });
 
-  it("fails closed when legacy userId does not match the actor", () => {
+  it("fails closed when userId does not match the active subject", () => {
     expect(
       parseAuthMeResponse(
         {
-          userId: "different-user",
+          userId: "guardian-account-001",
           principal: delegatedPrincipal(),
         },
         NOW,
@@ -304,6 +305,7 @@ describe("parseAuthMeResponse", () => {
       },
     ],
     ["missing relationship", delegatedPrincipal({ relationshipId: undefined })],
+    ["zero authorization version", delegatedPrincipal({ authorizationVersion: 0 })],
     ["negative authorization version", delegatedPrincipal({ authorizationVersion: -1 })],
     ["fractional authorization version", delegatedPrincipal({ authorizationVersion: 1.5 })],
     [
@@ -423,7 +425,7 @@ describe("AuthProvider", () => {
   it("exposes delegated actor and subject without adding browser-selected headers", async () => {
     authorizedFetchMock.mockResolvedValueOnce(
       response({
-        userId: "guardian-account-001",
+        userId: "managed-child-001",
         principal: delegatedPrincipal({
           authenticatedAt: "2020-07-15T11:00:00.000Z",
           assurance: {
@@ -445,7 +447,7 @@ describe("AuthProvider", () => {
     await waitFor(() =>
       expect(renderedText("subject-id")).toBe("managed-child-001"),
     );
-    expect(renderedText("user-id")).toBe("guardian-account-001");
+    expect(renderedText("user-id")).toBe("managed-child-001");
     expect(renderedText("actor-id")).toBe("guardian-account-001");
     expect(renderedText("principal-type")).toBe("guardian-delegated");
     expect(authorizedFetchMock).toHaveBeenCalledWith("/oauth/me");
@@ -493,7 +495,7 @@ describe("AuthProvider", () => {
     expect(renderedText("subject-id")).toBe("manual-user-001");
   });
 
-  it("clears existing state when a new response mismatches actor and userId", async () => {
+  it("clears existing state when a new response mismatches subject and userId", async () => {
     authorizedFetchMock
       .mockResolvedValueOnce(response({ userId: "legacy-user-001" }))
       .mockResolvedValueOnce(

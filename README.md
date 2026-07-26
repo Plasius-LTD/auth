@@ -114,15 +114,16 @@ properties at runtime. They are optional and read-only in the broad public
 in the 1.1 minor release. Treat an omitted value exactly like `null`: it does
 not establish authority.
 
-`userId` remains the backwards-compatible login and storage identifier; it is
-never the delegated subject ID. It normally equals `actor.accountId`. During
-the versioned phased-account transition it may differ only when `/oauth/me`
-also returns `principalContractVersion: 2` and
+`userId` remains a backwards-compatible convenience identifier and normally
+equals `subject.accountId`, including for delegated-child sessions. During the
+versioned phased-account transition it may instead retain a self account's
+legacy storage identifier only when `/oauth/me` also returns
+`principalContractVersion: 2` and
 `userIdKind: "legacy-storage-owner"`. Token and family authorization must use
 the server principal's subject, never `userId`.
 
 The version-2 compatibility markers are valid only with an explicit self
-principal and a genuine `userId`/actor mismatch. Marker-only responses,
+principal and a genuine `userId`/subject mismatch. Marker-only responses,
 redundant markers on an already-canonical `userId`, and markers attached to a
 delegated principal all fail closed.
 
@@ -219,7 +220,7 @@ rollback disables the flag and restores the prior package during the migration
 window.
 2. Backend starts OAuth with the provider, completes callback handling, then sets auth cookies.
 3. `AuthProvider` calls `GET /oauth/me` on mount to populate the actor/subject
-   principal and the backwards-compatible login/storage `userId`.
+   principal and the backwards-compatible active-subject `userId`.
 4. API calls through `useAuthorizedFetch()` include cookies and optional `x-csrf-token`.
 5. If a protected call returns `401`, package sends `POST /oauth/refresh-token` once for concurrent callers.
 6. On successful refresh, original request is retried automatically.
@@ -275,7 +276,7 @@ Canonical actor/subject response:
 
 ```json
 {
-  "userId": "guardian-account-001",
+  "userId": "managed-child-001",
   "principal": {
     "actor": {
       "accountId": "guardian-account-001",
@@ -287,7 +288,7 @@ Canonical actor/subject response:
     },
     "principalType": "guardian-delegated",
     "relationshipId": "guardian-relationship-001",
-    "authorizationVersion": 0,
+    "authorizationVersion": 1,
     "ageBand": "6-9",
     "assurance": {
       "level": "guardian-attested",
