@@ -18,17 +18,30 @@ import {
 const EMPTY_IDENTITY = {
   userId: null,
   principal: null,
+  authoritySource: null,
+  principalContractVersion: null,
+  userIdKind: null,
 } as const;
 
 export interface AuthContextType {
-  /** Backwards-compatible alias for the authenticated actor account ID. */
+  /** Backwards-compatible login/storage ID; may be a versioned legacy alias. */
   userId: string | null;
-  /** Server-authoritative authenticated actor. */
-  actor: PrincipalReference | null;
-  /** Server-authoritative effective subject; never selected locally. */
-  subject: PrincipalReference | null;
-  /** Validated actor/subject and delegated authorization context. */
-  principal: ActorSubjectPrincipal | null;
+  /** Additive actor reference; require `server-principal` before authorizing it. */
+  readonly actor?: PrincipalReference | null;
+  /** Additive subject reference; require `server-principal` before authorizing it. */
+  readonly subject?: PrincipalReference | null;
+  /** Additive actor/subject context, including compatibility-only legacy synthesis. */
+  readonly principal?: ActorSubjectPrincipal | null;
+  /**
+   * Additive phased-authority metadata. Token/family consumers must require the
+   * exact `server-principal` value; absence is non-authoritative.
+   */
+  readonly authoritySource?:
+    | "server-principal"
+    | "legacy-synthesized"
+    | null;
+  readonly principalContractVersion?: 2 | null;
+  readonly userIdKind?: "legacy-storage-owner" | null;
   setUserId: (userId: string | null) => void;
   validateSession: () => Promise<void>;
 }
@@ -40,6 +53,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [identity, setIdentity] = useState<{
     userId: string | null;
     principal: ActorSubjectPrincipal | null;
+    authoritySource: "server-principal" | "legacy-synthesized" | null;
+    principalContractVersion: 2 | null;
+    userIdKind: "legacy-storage-owner" | null;
   }>(EMPTY_IDENTITY);
   const validateSessionPromise = useRef<Promise<void> | null>(null);
   const isMounted = useRef(false);
@@ -93,9 +109,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         userId: identity.userId,
+        authoritySource: identity.authoritySource,
         actor,
         subject,
         principal: identity.principal,
+        principalContractVersion: identity.principalContractVersion,
+        userIdKind: identity.userIdKind,
         setUserId,
         validateSession,
       }}

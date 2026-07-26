@@ -37,14 +37,24 @@ alias is accepted only for one valid value; if both keys are present they must
 agree. Any malformed or ambiguous actor/subject response fails closed.
 
 For backwards compatibility, `{ "userId": "..." }` synthesizes a self
-principal and `userId` remains an alias for `principal.actor.accountId`.
-`setUserId` retains its legacy purpose by creating only a self principal. No
-subject setter or subject-selection request header is added.
+principal. The synthesized identity and local `setUserId` state are explicitly
+marked as compatibility state rather than server authority. `userId` normally
+matches `principal.actor.accountId`; the separately documented phased account
+contract permits a versioned legacy storage alias only for an explicit self
+principal while canonical authority is carried by the server principal.
+Delegated principals cannot use those compatibility markers. No subject setter
+or subject-selection request header is added.
 
 The public response omits the entity schema's `type`/`version` envelope while
 remaining structurally compatible with its scalar principal fields. This keeps
 the OAuth response composable and avoids coupling browser callers to persistence
 schema envelopes.
+
+The provider always supplies `actor`, `subject`, and `principal`, but those
+properties are optional and read-only on the broad `AuthContextType`. This
+preserves source compatibility with the exact v1.0.20 structural context shape
+for a 1.1 minor release. Absence in an older mock is non-authoritative and cannot
+be used to select a subject.
 
 ## Rollout and rollback
 
@@ -59,9 +69,13 @@ client API rollback.
 
 - Positive: Existing callers keep their `userId` behavior while new callers can
   distinguish actor from subject.
+- Positive: Existing v1.0.20 structural context mocks remain assignable without
+  adding principal properties.
 - Positive: Malformed identity data cannot silently fall back to a weaker
   interpretation, and raw age data is minimized.
 - Positive: Subject choice and relationship freshness remain server-authorized.
+- Positive: Subject-sensitive consumers can distinguish server authority from
+  locally synthesized legacy compatibility state.
 - Negative: The auth and entity packages must keep their structurally shared
   scalar types aligned until a released shared schema can be consumed directly.
 - Negative: Legacy responses cannot provide the original server authentication
