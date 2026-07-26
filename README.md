@@ -99,22 +99,74 @@ Provides auth state through context and runs session validation on mount.
 Returns:
 
 - `userId: string | null`
-- `actor: PrincipalReference | null`
-- `subject: PrincipalReference | null`
-- `principal: ActorSubjectPrincipal | null`
+- `readonly actor?: PrincipalReference | null`
+- `readonly subject?: PrincipalReference | null`
+- `readonly principal?: ActorSubjectPrincipal | null`
+- `readonly authoritySource?: "server-principal" | "legacy-synthesized" | null`
+- `readonly principalContractVersion?: 2 | null`
+- `readonly userIdKind?: "legacy-storage-owner" | null`
 - `setUserId(userId: string | null)`
 - `validateSession(): Promise<void>`
 
-`userId` remains a backwards-compatible alias for `actor.accountId`; it is
-never the delegated subject ID. `setUserId()` remains available for existing
-login integrations and creates a local self principal. It cannot select or
-change a subject.
+`AuthProvider` always supplies all six added principal and phased-authority
+properties at runtime. They are optional and read-only in the broad public
+`AuthContextType` so object-literal mocks written for 1.0.x remain assignable
+in the 1.1 minor release. Treat an omitted value exactly like `null`: it does
+not establish authority.
+
+`userId` remains the backwards-compatible login and storage identifier; it is
+never the delegated subject ID. It normally equals `actor.accountId`. During
+the versioned phased-account transition it may differ only when `/oauth/me`
+also returns `principalContractVersion: 2` and
+`userIdKind: "legacy-storage-owner"`. Token and family authorization must use
+the server principal's subject, never `userId`.
+
+The version-2 compatibility markers are valid only with an explicit self
+principal and a genuine `userId`/actor mismatch. Marker-only responses,
+redundant markers on an already-canonical `userId`, and markers attached to a
+delegated principal all fail closed.
+
+`setUserId()` remains available for existing login integrations and creates a
+local self principal marked `authoritySource: "legacy-synthesized"`. That
+fallback cannot authorize Token, family, or other subject-sensitive behavior.
+Only a validated explicit principal returned by `/oauth/me` is marked
+`authoritySource: "server-principal"`.
 
 `validateSession()` calls `GET /oauth/me`, validates the complete response, and
-atomically updates `userId`, `actor`, `subject`, and `principal`. A malformed,
-ambiguous, expired, future-dated, or actor-mismatched response clears the auth
-state. The actor and subject are server-authoritative; this package does not add
+atomically updates the complete identity, including authority provenance and
+compatibility markers. A malformed, ambiguous, expired, future-dated, or
+unversioned alias response clears the auth state. Actor and subject are
+server-authoritative only when `authoritySource` is `server-principal`;
+otherwise they are compatibility-only. This package does not add
 subject-selection headers to requests.
+
+### 1.1 phased-principal migration
+
+Existing `AuthContextType` and `AuthSessionIdentity` structural mocks do not
+need to add principal or phased-authority properties. The exact v1.0.20 context
+shape—`userId`, `setUserId`, and `validateSession`—remains assignable.
+`actor`, `subject`, `principal`, `authoritySource`,
+`principalContractVersion`, and `userIdKind` are optional, read-only context
+additions. `parseAuthMeResponse()` and `createLegacySelfIdentity()` return
+`ResolvedAuthSessionIdentity`, whose normalized metadata is always present.
+
+Subject-sensitive consumers must deny access unless provenance is explicitly
+server-issued:
+
+```ts
+const auth = useAuth();
+
+if (auth.authoritySource !== "server-principal" || !auth.subject) {
+  // Conceal or disable subject-sensitive behavior.
+  return;
+}
+
+const authoritativeSubjectId = auth.subject.accountId;
+```
+
+Do not use truthiness or the presence of `principal` alone:
+`legacy-synthesized` principals and older mocks are compatibility state, not
+authorization evidence.
 
 ### `useAuthorizedFetch()`
 
@@ -167,7 +219,7 @@ rollback disables the flag and restores the prior package during the migration
 window.
 2. Backend starts OAuth with the provider, completes callback handling, then sets auth cookies.
 3. `AuthProvider` calls `GET /oauth/me` on mount to populate the actor/subject
-   principal and the legacy actor alias `userId`.
+   principal and the backwards-compatible login/storage `userId`.
 4. API calls through `useAuthorizedFetch()` include cookies and optional `x-csrf-token`.
 5. If a protected call returns `401`, package sends `POST /oauth/refresh-token` once for concurrent callers.
 6. On successful refresh, original request is retried automatically.
@@ -194,7 +246,30 @@ window.
 
 Legacy responses synthesize a self principal. Its `authenticatedAt` value is
 the time at which the client observed the valid response, because the legacy
-contract does not expose the server authentication time.
+contract does not expose the server authentication time. This identity is
+marked `legacy-synthesized` and is not authority for Token or family features.
+
+Phased canonical-authority response retaining a legacy storage owner:
+
+```json
+{
+  "userId": "legacy-storage-owner-001",
+  "principalContractVersion": 2,
+  "userIdKind": "legacy-storage-owner",
+  "principal": {
+    "actor": {
+      "accountId": "acct_00000000-0000-4000-8000-000000000001",
+      "accountType": "user"
+    },
+    "subject": {
+      "accountId": "acct_00000000-0000-4000-8000-000000000001",
+      "accountType": "user"
+    },
+    "principalType": "self",
+    "authenticatedAt": "2026-07-21T12:00:00.000Z"
+  }
+}
+```
 
 Canonical actor/subject response:
 
@@ -279,8 +354,12 @@ Configure backend CORS and cookies for credentialed requests:
 - Implement all four routes above.
 - Issue and clear session cookies reliably.
 - Return legacy `userId` and/or a server-authorized actor/subject `principal`
-  from `/oauth/me`; when both are present, `userId` must equal
-  `principal.actor.accountId`.
+  from `/oauth/me`. When they differ, require the exact version-2
+  `legacy-storage-owner` markers on a self principal; never accept a
+  browser-selected alias or use those markers for delegated principals.
+- Authorize Token and family operations from the server principal subject.
+  Treat legacy-only and locally synthesized principals as compatibility state,
+  not authority.
 - Reject stale delegated relationship versions on the server and never inherit
   guardian roles into the child subject.
 - Return `401` for expired/invalid sessions.

@@ -8,12 +8,21 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 - **Added**
   - Add public actor/subject principal, age-band, and age-assurance contracts to
-    `AuthContext`, including read-only `actor`, `subject`, and `principal` state.
+    `AuthContext`, including optional read-only `actor`, `subject`, and
+    `principal` state.
+  - Expose principal provenance and the exact version-2
+    `legacy-storage-owner` compatibility markers for phased account adoption.
+  - Add `ResolvedAuthSessionIdentity` for helper results whose phased metadata
+    is normalized and always present.
 
 - **Changed**
-  - Preserve `userId` as the actor account alias while accepting canonical
-    `/oauth/me.principal`, a constrained plural migration alias, and legacy
-    `{ userId }` self-principal responses.
+  - Preserve `userId` as the backwards-compatible login/storage identifier
+    while accepting canonical `/oauth/me.principal`, a constrained plural
+    migration alias, and legacy `{ userId }` self-principal responses.
+  - Keep all new principal and phased-authority properties optional and
+    read-only on the broad `AuthContextType`, and keep phased metadata optional
+    and read-only on `AuthSessionIdentity`, so 1.0.x structural mocks remain
+    source-compatible with the 1.1 minor release.
 
 - **Fixed**
   - Route release preparation through the same configurable trusted self-hosted
@@ -25,6 +34,12 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - Fail closed on malformed, ambiguous, future-dated, expired, or
     actor-mismatched principals; strip unknown role, raw-age, and provider data;
     and remove raw account-ID session logging.
+  - Mark legacy response synthesis and local `setUserId` state as non-authority;
+    canonical Token/family consumers can require a server-issued principal.
+  - Reject version-2 compatibility markers unless they accompany an explicit
+    self principal with a genuine legacy `userId`/canonical-actor mismatch.
+  - Add an enforced public-type compatibility check for pre-phased context and
+    session mock shapes.
 
 ## [1.0.20] - 2026-07-12
 

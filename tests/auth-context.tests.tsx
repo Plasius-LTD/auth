@@ -22,6 +22,16 @@ const NOW = Date.parse("2026-07-15T12:00:00.000Z");
 const AUTHENTICATED_AT = "2026-07-15T11:00:00.000Z";
 const ASSERTED_AT = "2026-07-15T10:00:00.000Z";
 const EXPIRES_AT = "2099-07-15T10:00:00.000Z";
+const CANONICAL_ACCOUNT_ID = "acct_00000000-0000-4000-8000-000000000001";
+
+function canonicalSelfPrincipal(): ActorSubjectPrincipal {
+  return {
+    actor: { accountId: CANONICAL_ACCOUNT_ID, accountType: "user" },
+    subject: { accountId: CANONICAL_ACCOUNT_ID, accountType: "user" },
+    principalType: "self",
+    authenticatedAt: AUTHENTICATED_AT,
+  };
+}
 
 function delegatedPrincipal(
   overrides: Partial<ActorSubjectPrincipal> = {},
@@ -59,7 +69,15 @@ function response(payload: unknown, ok = true): Response {
 }
 
 function AuthProbe() {
-  const { actor, principal, setUserId, subject, userId, validateSession } = useAuth();
+  const {
+    actor,
+    authoritySource,
+    principal,
+    setUserId,
+    subject,
+    userId,
+    validateSession,
+  } = useAuth();
 
   return (
     <>
@@ -69,6 +87,7 @@ function AuthProbe() {
       <output data-testid="principal-type">
         {principal?.principalType ?? "none"}
       </output>
+      <output data-testid="authority-source">{authoritySource ?? "none"}</output>
       <button type="button" onClick={() => setUserId("manual-user-001")}>
         Set legacy user
       </button>
@@ -89,6 +108,9 @@ describe("parseAuthMeResponse", () => {
 
     expect(parsed).toEqual({
       userId: "user_123",
+      authoritySource: "legacy-synthesized",
+      principalContractVersion: null,
+      userIdKind: null,
       principal: {
         actor: { accountId: "user_123", accountType: "user" },
         subject: { accountId: "user_123", accountType: "user" },
@@ -210,6 +232,65 @@ describe("parseAuthMeResponse", () => {
         NOW,
       ),
     ).toBeNull();
+  });
+
+  it("retains a versioned legacy storage alias beside a canonical self principal", () => {
+    expect(parseAuthMeResponse({
+      userId: "legacy-storage-owner-001",
+      userIdKind: "legacy-storage-owner",
+      principalContractVersion: 2,
+      principal: canonicalSelfPrincipal(),
+    }, NOW)).toEqual({
+      userId: "legacy-storage-owner-001",
+      authoritySource: "server-principal",
+      principalContractVersion: 2,
+      userIdKind: "legacy-storage-owner",
+      principal: canonicalSelfPrincipal(),
+    });
+  });
+
+  it.each([
+    [
+      "markers without an explicit principal",
+      {
+        userId: "legacy-storage-owner-001",
+        userIdKind: "legacy-storage-owner",
+        principalContractVersion: 2,
+      },
+    ],
+    [
+      "markers without a genuine alias",
+      {
+        userId: CANONICAL_ACCOUNT_ID,
+        userIdKind: "legacy-storage-owner",
+        principalContractVersion: 2,
+        principal: canonicalSelfPrincipal(),
+      },
+    ],
+    [
+      "markers on a delegated principal",
+      {
+        userId: "legacy-storage-owner-001",
+        userIdKind: "legacy-storage-owner",
+        principalContractVersion: 2,
+        principal: delegatedPrincipal(),
+      },
+    ],
+  ])("rejects an invalid compatibility marker shape: %s", (_label, payload) => {
+    expect(parseAuthMeResponse(payload, NOW)).toBeNull();
+  });
+
+  it.each([
+    ["missing version", { userIdKind: "legacy-storage-owner" }],
+    ["missing alias kind", { principalContractVersion: 2 }],
+    ["unknown version", { principalContractVersion: 3, userIdKind: "legacy-storage-owner" }],
+    ["unknown alias kind", { principalContractVersion: 2, userIdKind: "browser-selected" }],
+  ])("rejects an actor mismatch with an invalid compatibility contract: %s", (_label, contract) => {
+    expect(parseAuthMeResponse({
+      userId: "legacy-storage-owner-001",
+      principal: canonicalSelfPrincipal(),
+      ...contract,
+    }, NOW)).toBeNull();
   });
 
   it.each([
@@ -336,6 +417,7 @@ describe("AuthProvider", () => {
     expect(renderedText("actor-id")).toBe("legacy-user-001");
     expect(renderedText("subject-id")).toBe("legacy-user-001");
     expect(renderedText("principal-type")).toBe("self");
+    expect(renderedText("authority-source")).toBe("legacy-synthesized");
   });
 
   it("exposes delegated actor and subject without adding browser-selected headers", async () => {
@@ -367,6 +449,31 @@ describe("AuthProvider", () => {
     expect(renderedText("actor-id")).toBe("guardian-account-001");
     expect(renderedText("principal-type")).toBe("guardian-delegated");
     expect(authorizedFetchMock).toHaveBeenCalledWith("/oauth/me");
+  });
+
+  it("keeps the compatibility userId while exposing canonical Token authority", async () => {
+    authorizedFetchMock.mockResolvedValueOnce(
+      response({
+        userId: "legacy-storage-owner-001",
+        userIdKind: "legacy-storage-owner",
+        principalContractVersion: 2,
+        principal: {
+          ...canonicalSelfPrincipal(),
+          authenticatedAt: "2020-07-15T11:00:00.000Z",
+        },
+      }),
+    );
+
+    render(
+      <AuthProvider>
+        <AuthProbe />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => expect(renderedText("user-id")).toBe("legacy-storage-owner-001"));
+    expect(renderedText("actor-id")).toBe(CANONICAL_ACCOUNT_ID);
+    expect(renderedText("subject-id")).toBe(CANONICAL_ACCOUNT_ID);
+    expect(renderedText("authority-source")).toBe("server-principal");
   });
 
   it("keeps setUserId as a compatible actor setter", async () => {

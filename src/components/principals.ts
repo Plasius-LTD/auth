@@ -39,6 +39,10 @@ export interface PrincipalReference {
 
 export type PrincipalType = "self" | "guardian-delegated";
 
+/** Self-principal `/oauth/me` contract separating a legacy storage alias from authority. */
+export const COMPATIBILITY_PRINCIPAL_CONTRACT_VERSION = 2 as const;
+export const LEGACY_STORAGE_OWNER_USER_ID_KIND = "legacy-storage-owner" as const;
+
 /**
  * Server-authoritative identity for the authenticated actor and effective subject.
  * Guardian roles are deliberately not part of this browser contract.
@@ -54,16 +58,40 @@ export interface ActorSubjectPrincipal {
   authenticatedAt: string;
 }
 
-/** Normalized identity retained by AuthContext. */
+/** Public session shape retained by AuthContext. */
 export interface AuthSessionIdentity {
-  /** Backwards-compatible alias for `principal.actor.accountId`. */
+  /** Backwards-compatible login/storage identifier; never use it as Token authority. */
   userId: string;
   principal: ActorSubjectPrincipal;
+  /**
+   * Additive provenance metadata. Consumers requiring canonical authority must
+   * check for the exact `server-principal` value; absence is non-authoritative.
+   */
+  readonly authoritySource?: "server-principal" | "legacy-synthesized";
+  readonly principalContractVersion?:
+    | typeof COMPATIBILITY_PRINCIPAL_CONTRACT_VERSION
+    | null;
+  readonly userIdKind?: typeof LEGACY_STORAGE_OWNER_USER_ID_KIND | null;
+}
+
+/**
+ * Fully normalized identity returned by this package's parsing and legacy
+ * synthesis helpers. The broader `AuthSessionIdentity` remains structurally
+ * compatible with pre-phased mocks.
+ */
+export interface ResolvedAuthSessionIdentity extends AuthSessionIdentity {
+  readonly authoritySource: "server-principal" | "legacy-synthesized";
+  readonly principalContractVersion:
+    | typeof COMPATIBILITY_PRINCIPAL_CONTRACT_VERSION
+    | null;
+  readonly userIdKind: typeof LEGACY_STORAGE_OWNER_USER_ID_KIND | null;
 }
 
 /** Backwards-compatible `/oauth/me` response contract. */
 export interface AuthMeResponse {
   userId?: string;
+  principalContractVersion?: typeof COMPATIBILITY_PRINCIPAL_CONTRACT_VERSION;
+  userIdKind?: typeof LEGACY_STORAGE_OWNER_USER_ID_KIND;
   principal?: ActorSubjectPrincipal;
   principals?: ActorSubjectPrincipal | readonly [ActorSubjectPrincipal];
 }
@@ -312,12 +340,18 @@ function principalsMatch(
   return JSON.stringify(first) === JSON.stringify(second);
 }
 
-function synthesizeSelfIdentity(userId: string, nowMs: number): AuthSessionIdentity {
+function synthesizeSelfIdentity(
+  userId: string,
+  nowMs: number,
+): ResolvedAuthSessionIdentity {
   const authenticatedAt = new Date(nowMs).toISOString();
   const reference: PrincipalReference = { accountId: userId, accountType: "user" };
 
   return {
     userId,
+    authoritySource: "legacy-synthesized",
+    principalContractVersion: null,
+    userIdKind: null,
     principal: {
       actor: reference,
       subject: { ...reference },
@@ -331,7 +365,7 @@ function synthesizeSelfIdentity(userId: string, nowMs: number): AuthSessionIdent
 export function createLegacySelfIdentity(
   userId: unknown,
   nowMs = Date.now(),
-): AuthSessionIdentity | null {
+): ResolvedAuthSessionIdentity | null {
   const parsedUserId = parseIdentifier(userId);
   if (
     !parsedUserId ||
@@ -352,7 +386,7 @@ export function createLegacySelfIdentity(
 export function parseAuthMeResponse(
   value: unknown,
   nowMs = Date.now(),
-): AuthSessionIdentity | null {
+): ResolvedAuthSessionIdentity | null {
   if (
     !Number.isFinite(nowMs) ||
     nowMs < 0 ||
@@ -365,6 +399,20 @@ export function parseAuthMeResponse(
   const hasUserId = hasOwn(value, "userId");
   const userId = hasUserId ? parseIdentifier(value.userId) : undefined;
   if (hasUserId && !userId) return null;
+
+  const hasPrincipalContractVersion = hasOwn(value, "principalContractVersion");
+  const hasUserIdKind = hasOwn(value, "userIdKind");
+  const hasCompatibilityMarkers =
+    hasPrincipalContractVersion
+    && hasUserIdKind
+    && value.principalContractVersion === COMPATIBILITY_PRINCIPAL_CONTRACT_VERSION
+    && value.userIdKind === LEGACY_STORAGE_OWNER_USER_ID_KIND;
+  if (
+    (hasPrincipalContractVersion || hasUserIdKind)
+    && (!hasCompatibilityMarkers || !userId)
+  ) {
+    return null;
+  }
 
   const hasPrincipal = hasOwn(value, "principal");
   const hasPrincipals = hasOwn(value, "principals");
@@ -388,13 +436,33 @@ export function parseAuthMeResponse(
   }
 
   if (!principal) {
+    if (hasCompatibilityMarkers) return null;
     return userId ? synthesizeSelfIdentity(userId, nowMs) : null;
   }
 
-  if (userId && userId !== principal.actor.accountId) return null;
+  const compatibilityAliasContract =
+    hasCompatibilityMarkers
+    && principal.principalType === "self"
+    && userId !== principal.actor.accountId;
+  if (hasCompatibilityMarkers && !compatibilityAliasContract) return null;
+
+  if (
+    userId
+    && userId !== principal.actor.accountId
+    && !compatibilityAliasContract
+  ) {
+    return null;
+  }
 
   return {
-    userId: principal.actor.accountId,
+    userId: userId ?? principal.actor.accountId,
+    authoritySource: "server-principal",
+    principalContractVersion: compatibilityAliasContract
+      ? COMPATIBILITY_PRINCIPAL_CONTRACT_VERSION
+      : null,
+    userIdKind: compatibilityAliasContract
+      ? LEGACY_STORAGE_OWNER_USER_ID_KIND
+      : null,
     principal,
   };
 }
