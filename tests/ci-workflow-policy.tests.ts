@@ -7,14 +7,18 @@ const readWorkflow = (name: string): string =>
 const ciWorkflow = readWorkflow("ci");
 const cdWorkflow = readWorkflow("cd");
 const releasePrepareWorkflow = readWorkflow("release-prepare");
-const trustedProductionRunner =
+const configurableSelfHostedRunner =
   "runs-on: ${{ fromJSON(vars.CD_RUNNER_LABELS || '[\"self-hosted\",\"Linux\",\"X64\"]') }}";
+const hostedProductionRunner = "runs-on: ubuntu-latest";
 
 describe("workflow trust boundaries", () => {
-  it("runs both production release jobs on the configurable trusted runner", () => {
-    expect(cdWorkflow).toContain(trustedProductionRunner);
-    expect(releasePrepareWorkflow).toContain(trustedProductionRunner);
-    expect(releasePrepareWorkflow).not.toContain("runs-on: ubuntu-latest");
+  it("runs both production release jobs on GitHub-hosted production runners", () => {
+    expect(cdWorkflow).toContain(hostedProductionRunner);
+    expect(releasePrepareWorkflow).toContain(hostedProductionRunner);
+    expect(cdWorkflow).not.toContain(configurableSelfHostedRunner);
+    expect(releasePrepareWorkflow).not.toContain(configurableSelfHostedRunner);
+    expect(cdWorkflow).toContain("environment: production");
+    expect(releasePrepareWorkflow).toContain("environment: production");
   });
 
   it("does not expose a self-hosted runner to fork pull requests", () => {

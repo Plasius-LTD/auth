@@ -21,6 +21,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
     guards for task #26.
 
 - **Security**
+  - Added fail-closed source and npm-package admission for the administrative contributor registry and pinned the CI/CD runtime to Node.js 24.18.0 LTS.
   - Fail closed on malformed, ambiguous, future-dated, expired, or
     actor-mismatched principals; strip unknown role, raw-age, and provider data;
     and remove raw account-ID session logging.
