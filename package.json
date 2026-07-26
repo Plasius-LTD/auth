@@ -1,6 +1,6 @@
 {
   "name": "@plasius/auth",
-  "version": "1.0.20",
+  "version": "1.1.0",
   "description": "Authentication helpers and React context for Plasius applications.",
   "type": "module",
   "sideEffects": false,

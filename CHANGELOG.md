@@ -7,6 +7,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 - **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [1.1.0] - 2026-07-26
+
+- **Added**
   - Add public actor/subject principal, age-band, and age-assurance contracts to
     `AuthContext`, including optional read-only `actor`, `subject`, and
     `principal` state.
@@ -263,7 +277,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 > Tip: Use Conventional Commits in PR titles/bodies to make changelog updates easier.
 
-[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.0.20...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.1.0...HEAD
 [1.0.2]: https://github.com/Plasius-LTD/auth/compare/858d03c...fdf8d70
 [1.0.1]: https://github.com/Plasius-LTD/auth/compare/v1.0.0...858d03c
 [1.0.0]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.0
@@ -280,3 +294,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [1.0.18]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.18
 [1.0.19]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.19
 [1.0.20]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.20
+[1.1.0]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.0
