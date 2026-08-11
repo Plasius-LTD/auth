@@ -10,7 +10,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Changed**
-  - (placeholder)
+  - Bound npm publication to the exact prepared `main` commit after successful push-triggered CI.
 
 - **Fixed**
   - (placeholder)
@@ -18,6 +18,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 - **Security**
   - Clarified that CLA acceptance records remain in access-controlled storage
     outside source control and public release artifacts.
+  - Removed the npm write-token path, added a fail-closed npm 11.5.1-or-newer OIDC guard, and denied fork PR code access to self-hosted CI.
 
 ## [1.1.0] - 2026-07-26
 

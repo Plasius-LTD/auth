@@ -4,3 +4,4 @@
 - [ADR-0002: Public Package Governance Baseline](./adr-0002-public-repo-governance.md)
 - [ADR-0003: Actor-Subject Delegated Principals](./adr-0003-actor-subject-delegated-principals.md)
 - [ADR-0004: Phased Account Principal Compatibility](./adr-0004-phased-account-principal-compatibility.md)
+- [ADR-0005: Hosted OIDC Package Publication](./adr-0005-hosted-oidc-package-publication.md)

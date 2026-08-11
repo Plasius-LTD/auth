@@ -22,6 +22,8 @@ describe("workflow trust boundaries", () => {
   });
 
   it("does not expose a self-hosted runner to fork pull requests", () => {
+    expect(ciWorkflow).toContain("pull_request:");
+    expect(ciWorkflow).toContain("runs-on: [self-hosted, Linux, X64]");
     expect(ciWorkflow).not.toContain("pull_request_target:");
 
     if (/pull_request:\s*\n/u.test(ciWorkflow)) {
@@ -29,6 +31,20 @@ describe("workflow trust boundaries", () => {
         "github.event.pull_request.head.repo.full_name == github.repository",
       );
     }
+  });
+
+  it("binds npm OIDC publication to exact main CI and a supported runtime", () => {
+    expect(cdWorkflow).toContain("Enforce exact-main successful CI");
+    expect(cdWorkflow).toContain("refs/remotes/origin/main");
+    expect(cdWorkflow).toContain("-f branch=main");
+    expect(cdWorkflow).toContain("-f event=push");
+    expect(cdWorkflow).toContain('-f head_sha="${EXPECTED_SHA}"');
+    expect(cdWorkflow).toContain('conclusion == "success"');
+    expect(cdWorkflow).toContain("Verify release runtime");
+    expect(cdWorkflow).toContain('ACTUAL_NODE%%.*');
+    expect(cdWorkflow).toContain('"11.5.1"');
+    expect(cdWorkflow).toContain("--provenance");
+    expect(cdWorkflow).not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN/u);
   });
 
   it("keeps production release workflows off pull-request triggers", () => {
