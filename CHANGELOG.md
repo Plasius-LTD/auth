@@ -10,7 +10,9 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Changed**
-  - (placeholder)
+  - Run CI and release workflows with Node-24-native GitHub actions, bounded
+    job timeouts, and package-manager caching disabled for self-hosted or
+    privileged workflows.
 
 - **Fixed**
   - Preserve caller headers supplied to `createAuthorizedFetch()` as a

@@ -10,13 +10,14 @@ permissions:
 jobs:
   build-test:
     runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          package-manager-cache: false
 
       - name: Install deps
         run: npm ci --no-fund --no-audit --legacy-peer-deps
@@ -103,11 +104,12 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
+          package-manager-cache: false
       - name: Verify public artifact integrity
         run: node ./scripts/verify-public-artifacts.cjs '--package-dir' '.'
   # END PLASIUS PUBLIC ARTIFACT INTEGRITY JOB
