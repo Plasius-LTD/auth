@@ -13,7 +13,9 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Fixed**
-  - (placeholder)
+  - Preserve caller headers supplied to `createAuthorizedFetch()` as a
+    `Headers` instance, tuple array, or plain object, while cloning the
+    initializer before applying the cookie-derived CSRF token.
 
 - **Security**
   - Clarified that CLA acceptance records remain in access-controlled storage

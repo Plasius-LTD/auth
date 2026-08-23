@@ -32,10 +32,57 @@ describe("authorizedFetch", () => {
     await authorizedFetch("/test");
 
     expect(fetchMock).toHaveBeenCalledOnce();
-    expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({
-      "x-csrf-token": "abc123",
-    });
+    const sentHeaders = new Headers(fetchMock.mock.calls[0][1]?.headers);
+    expect(sentHeaders.get("x-csrf-token")).toBe("abc123");
     expect(fetchMock.mock.calls[0][1]?.credentials).toBe("include");
+  });
+
+  it("preserves a caller-owned Headers instance without mutating it", async () => {
+    globalThis.document = {
+      cookie: "csrf-token=server-cookie-token",
+    } as unknown as { cookie: string };
+
+    const callerHeaders = new Headers({
+      "Content-Type": "application/json",
+      "Idempotency-Key": "family-command-1",
+      "x-csrf-token": "caller-token",
+    });
+    fetchMock.mockResolvedValueOnce(new Response("ok"));
+
+    const authorizedFetch = createAuthorizedFetch();
+    await authorizedFetch("/test", { headers: callerHeaders });
+
+    const sentHeaders = new Headers(fetchMock.mock.calls[0][1]?.headers);
+    expect(sentHeaders.get("content-type")).toBe("application/json");
+    expect(sentHeaders.get("idempotency-key")).toBe("family-command-1");
+    expect(sentHeaders.get("x-csrf-token")).toBe("server-cookie-token");
+    expect(callerHeaders.get("x-csrf-token")).toBe("caller-token");
+  });
+
+  it.each([
+    {
+      name: "tuple-array",
+      headers: [
+        ["Content-Type", "application/json"],
+        ["X-Correlation-Id", "correlation-1"],
+      ] as [string, string][],
+    },
+    {
+      name: "plain-object",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Correlation-Id": "correlation-1",
+      },
+    },
+  ])("preserves $name header initializers", async ({ headers }) => {
+    fetchMock.mockResolvedValueOnce(new Response("ok"));
+
+    const authorizedFetch = createAuthorizedFetch();
+    await authorizedFetch("/test", { headers });
+
+    const sentHeaders = new Headers(fetchMock.mock.calls[0][1]?.headers);
+    expect(sentHeaders.get("content-type")).toBe("application/json");
+    expect(sentHeaders.get("x-correlation-id")).toBe("correlation-1");
   });
 
   it("refreshes and retries once after a 401", async () => {
@@ -54,12 +101,12 @@ describe("authorizedFetch", () => {
     expect(response.ok).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock.mock.calls[1][0]).toBe("/oauth/refresh-token");
-    expect(fetchMock.mock.calls[1][1]?.headers).toMatchObject({
-      "x-csrf-token": "xyz",
-    });
-    expect(fetchMock.mock.calls[2][1]?.headers).toMatchObject({
-      "x-csrf-token": "xyz",
-    });
+    expect(
+      new Headers(fetchMock.mock.calls[1][1]?.headers).get("x-csrf-token")
+    ).toBe("xyz");
+    expect(
+      new Headers(fetchMock.mock.calls[2][1]?.headers).get("x-csrf-token")
+    ).toBe("xyz");
   });
 
   it("stops after one refresh attempt when request still returns 401", async () => {
