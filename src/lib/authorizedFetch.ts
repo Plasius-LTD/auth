@@ -98,14 +98,16 @@ export function createAuthorizedFetch() {
     init: RequestInit = {}
   ): Promise<Response> => {
     const csrfToken = getCsrfToken();
+    const headers = new Headers(init.headers);
+
+    if (csrfToken) {
+      headers.set("x-csrf-token", csrfToken);
+    }
 
     return fetch(input, {
       ...init,
       credentials: "include",
-      headers: {
-        ...init.headers,
-        ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
-      },
+      headers,
     });
   };
 

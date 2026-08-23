@@ -180,7 +180,10 @@ Non-hook function that creates the same authorized fetch wrapper.
 Behavior:
 
 - Always sends requests with `credentials: "include"`.
+- Preserves caller headers supplied as a `Headers` instance, tuple array, or
+  plain object without mutating the caller-owned initializer.
 - Reads `csrf-token` from browser cookies and sends it as `x-csrf-token` when present.
+  The cookie-derived token takes precedence over a caller-supplied CSRF header.
 - On `401`, calls `POST /oauth/refresh-token` and retries the original request.
 - Deduplicates concurrent refresh calls with a shared promise.
 - Limits refresh to one retry cycle per request (prevents recursive retry loops).
