@@ -6,6 +6,7 @@ export type AgeBand = (typeof AGE_BANDS)[number];
 export const AGE_ASSURANCE_LEVELS = [
   "self-asserted",
   "guardian-attested",
+  "provider-asserted",
   "verified",
 ] as const;
 
@@ -14,6 +15,7 @@ export type AgeAssuranceLevel = (typeof AGE_ASSURANCE_LEVELS)[number];
 export const AGE_ASSURANCE_METHODS = [
   "self-assertion",
   "guardian-attestation",
+  "provider-age-signal",
   "verified-provider",
   "manual-review",
 ] as const;
@@ -227,6 +229,8 @@ function parseAgeAssurance(
     (value.level === "self-asserted" && value.method === "self-assertion") ||
     (value.level === "guardian-attested" &&
       value.method === "guardian-attestation") ||
+    (value.level === "provider-asserted" &&
+      value.method === "provider-age-signal") ||
     (value.level === "verified" &&
       (value.method === "verified-provider" || value.method === "manual-review"));
   if (!hasValidLevelMethodPair) return null;
@@ -304,7 +308,8 @@ export function parseActorSubjectPrincipal(
       subject.accountType !== "user" ||
       actor.accountId !== subject.accountId ||
       hasRelationshipId ||
-      hasAuthorizationVersion
+      hasAuthorizationVersion ||
+      (assurance?.level === "provider-asserted" && ageBand !== "18+")
     ) {
       return null;
     }
@@ -317,7 +322,8 @@ export function parseActorSubjectPrincipal(
     !ageBand ||
     ageBand === "18+" ||
     !assurance ||
-    assurance.level === "self-asserted"
+    assurance.level === "self-asserted" ||
+    assurance.level === "provider-asserted"
   ) {
     return null;
   }

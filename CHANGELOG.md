@@ -8,6 +8,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 - **Added**
   - (placeholder)
+  - Parse a distinct provider-asserted adult account signal on `18+` self
+    principals for ordinary age-shaped content.
 
 - **Changed**
   - (placeholder)
@@ -17,6 +19,8 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 - **Security**
   - (placeholder)
+  - Reject provider-asserted signals for minor age bands and delegated child
+    principals, leaving verified-only authorization policies unchanged.
 
 ## [1.1.1] - 2026-08-23
 

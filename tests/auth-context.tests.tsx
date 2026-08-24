@@ -170,6 +170,40 @@ describe("parseAuthMeResponse", () => {
     expect(parsed?.principal.assurance?.method).toBe("manual-review");
   });
 
+  it("accepts a provider account age signal only for an adult self principal", () => {
+    const principal = {
+      actor: { accountId: "adult-001", accountType: "user" as const },
+      subject: { accountId: "adult-001", accountType: "user" as const },
+      principalType: "self" as const,
+      ageBand: "18+" as const,
+      assurance: {
+        level: "provider-asserted" as const,
+        method: "provider-age-signal" as const,
+        assertedAt: ASSERTED_AT,
+        expiresAt: EXPIRES_AT,
+      },
+      authenticatedAt: AUTHENTICATED_AT,
+    };
+
+    expect(parseAuthMeResponse({ principal }, NOW)?.principal).toEqual(principal);
+    expect(
+      parseAuthMeResponse(
+        { principal: { ...principal, ageBand: "16-17" } },
+        NOW,
+      ),
+    ).toBeNull();
+    expect(
+      parseAuthMeResponse(
+        {
+          principal: delegatedPrincipal({
+            assurance: principal.assurance,
+          }),
+        },
+        NOW,
+      ),
+    ).toBeNull();
+  });
+
   it("accepts minimized provider verification after internal evidence is stripped", () => {
     const parsed = parseAuthMeResponse(
       {
