@@ -309,6 +309,11 @@ Supported age bands are `5`, `6-9`, `10-12`, `13-15`, `16-17`, and
 It deliberately excludes exact birth dates and provider payloads.
 An internal provider evidence reference may be omitted from this public
 principal after the server has validated and minimized the assurance record.
+`provider-asserted` / `provider-age-signal` represents only a positive adult
+category from an external account provider. It is accepted only for an `18+`
+self principal, never a delegated child, and is deliberately distinct from
+`verified`; financial and reward-provider policies must continue to require
+their higher assurance level.
 
 During migration, `principals` is accepted as an alias only when it contains
 exactly one valid principal (either directly or as a one-element array). If
