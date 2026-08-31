@@ -16,6 +16,42 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Security**
+  - (placeholder)
+
+## [1.1.2] - 2026-08-24
+
+- **Added**
+  - (placeholder)
+  - Parse a distinct provider-asserted adult account signal on `18+` self
+    principals for ordinary age-shaped content.
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+  - Reject provider-asserted signals for minor age bands and delegated child
+    principals, leaving verified-only authorization policies unchanged.
+
+## [1.1.1] - 2026-08-23
+
+- **Added**
+  - (placeholder)
+
+- **Changed**
+  - Run CI and release workflows with Node-24-native GitHub actions, bounded
+    job timeouts, and package-manager caching disabled for self-hosted or
+    privileged workflows.
+
+- **Fixed**
+  - Preserve caller headers supplied to `createAuthorizedFetch()` as a
+    `Headers` instance, tuple array, or plain object, while cloning the
+    initializer before applying the cookie-derived CSRF token.
+
+- **Security**
   - Clarified that CLA acceptance records remain in access-controlled storage
     outside source control and public release artifacts.
   - Removed the npm write-token path, added a fail-closed npm 11.5.1-or-newer OIDC guard, and denied fork PR code access to self-hosted CI.
@@ -279,7 +315,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 > Tip: Use Conventional Commits in PR titles/bodies to make changelog updates easier.
 
-[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.1.2...HEAD
 [1.0.2]: https://github.com/Plasius-LTD/auth/compare/858d03c...fdf8d70
 [1.0.1]: https://github.com/Plasius-LTD/auth/compare/v1.0.0...858d03c
 [1.0.0]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.0
@@ -297,3 +333,5 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [1.0.19]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.19
 [1.0.20]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.20
 [1.1.0]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.0
+[1.1.1]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.1
+[1.1.2]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.2

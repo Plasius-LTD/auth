@@ -29,6 +29,10 @@ Add a structurally shared `ActorSubjectPrincipal` contract to `@plasius/auth`:
   evidence reference. Exact birth data and provider payloads are not retained.
   The public principal remains valid when an internal evidence reference has
   been deliberately removed during schema serialization.
+- A positive external account-provider adult category is carried as the
+  distinct `provider-asserted` / `provider-age-signal` pair. It is valid only
+  for an `18+` self principal and is rejected for delegated children. It does
+  not satisfy policies that require `verified` assurance.
 - Unknown principal fields, including roles, are discarded. Guardian roles are
   never copied into child-subject context.
 
@@ -75,6 +79,8 @@ client API rollback.
 - Positive: Malformed identity data cannot silently fall back to a weaker
   interpretation, and raw age data is minimized.
 - Positive: Subject choice and relationship freshness remain server-authorized.
+- Positive: Ordinary age-shaped content can use a minimized provider signal
+  without silently widening financial or reward-provider authorization.
 - Positive: Subject-sensitive consumers can distinguish server authority from
   locally synthesized legacy compatibility state.
 - Negative: The auth and entity packages must keep their structurally shared

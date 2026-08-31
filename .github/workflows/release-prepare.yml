@@ -73,6 +73,7 @@ permissions:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: production
     outputs:
       name: ${{ steps.release.outputs.name }}
@@ -84,7 +85,7 @@ jobs:
       effective_preid: ${{ steps.release.outputs.effective_preid }}
     steps:
       - name: Checkout main
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.base_branch }}
           fetch-depth: 0
@@ -100,7 +101,7 @@ jobs:
           permission-pull-requests: write
 
       - name: Use Node.js 24
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           package-manager-cache: false

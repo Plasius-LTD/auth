@@ -58,13 +58,14 @@ jobs:
     if: inputs.phase == 'prepare'
     needs: prepare_release
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: production
     permissions:
       actions: write
       contents: read
     steps:
       - name: Checkout prepared release commit
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare_release.outputs.commit_sha }}
           fetch-depth: 0
@@ -175,14 +176,14 @@ jobs:
       sbom_artifact_digest: ${{ steps.upload_sbom.outputs.artifact-digest }}
     steps:
       - name: Checkout exact workflow commit
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Use Node.js 24.18.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: ".nvmrc"
           package-manager-cache: false
@@ -462,13 +463,13 @@ jobs:
       id-token: write
     steps:
       - name: Checkout exact workflow commit
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Use Node.js 24.18.0
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: ".nvmrc"
           package-manager-cache: false

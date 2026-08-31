@@ -180,7 +180,10 @@ Non-hook function that creates the same authorized fetch wrapper.
 Behavior:
 
 - Always sends requests with `credentials: "include"`.
+- Preserves caller headers supplied as a `Headers` instance, tuple array, or
+  plain object without mutating the caller-owned initializer.
 - Reads `csrf-token` from browser cookies and sends it as `x-csrf-token` when present.
+  The cookie-derived token takes precedence over a caller-supplied CSRF header.
 - On `401`, calls `POST /oauth/refresh-token` and retries the original request.
 - Deduplicates concurrent refresh calls with a shared promise.
 - Limits refresh to one retry cycle per request (prevents recursive retry loops).
@@ -306,6 +309,11 @@ Supported age bands are `5`, `6-9`, `10-12`, `13-15`, `16-17`, and
 It deliberately excludes exact birth dates and provider payloads.
 An internal provider evidence reference may be omitted from this public
 principal after the server has validated and minimized the assurance record.
+`provider-asserted` / `provider-age-signal` represents only a positive adult
+category from an external account provider. It is accepted only for an `18+`
+self principal, never a delegated child, and is deliberately distinct from
+`verified`; financial and reward-provider policies must continue to require
+their higher assurance level.
 
 During migration, `principals` is accepted as an alias only when it contains
 exactly one valid principal (either directly or as a one-element array). If
