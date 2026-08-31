@@ -10,6 +10,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [1.1.3] - 2026-08-31
+
+- **Added**
+  - (placeholder)
+
+- **Changed**
   - Routed reviewed CI through the organisation's quarantined public runner group while retaining explicit platform labels.
   - Bound npm publication to the exact prepared `main` commit after successful push-triggered CI.
   - Enabled exact-head manual CI dispatch for reviewed release validation.
@@ -317,7 +331,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 > Tip: Use Conventional Commits in PR titles/bodies to make changelog updates easier.
 
-[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.1.3...HEAD
 [1.0.2]: https://github.com/Plasius-LTD/auth/compare/858d03c...fdf8d70
 [1.0.1]: https://github.com/Plasius-LTD/auth/compare/v1.0.0...858d03c
 [1.0.0]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.0
@@ -337,3 +351,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [1.1.0]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.0
 [1.1.1]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.1
 [1.1.2]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.2
+[1.1.3]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.3
