@@ -24,12 +24,9 @@ describe("workflow trust boundaries", () => {
   it("does not expose a self-hosted runner to fork pull requests", () => {
     expect(ciWorkflow).toContain("pull_request:");
     expect(ciWorkflow).toContain("workflow_dispatch:");
-    expect(
-      ciWorkflow.match(/runs-on:\n {6}group: Public CI - Quarantined/gu),
-    ).toHaveLength(2);
-    expect(
-      ciWorkflow.match(/labels: \[self-hosted, Linux, X64\]/gu),
-    ).toHaveLength(2);
+    expect(ciWorkflow.match(/runs-on: \$\{\{ fromJSON\(github\.event_name == 'pull_request'/gu)).toHaveLength(2);
+    expect(ciWorkflow).toContain('["ubuntu-latest"]');
+    expect(ciWorkflow).toContain('["self-hosted","Linux","X64"]');
     expect(ciWorkflow).not.toContain("pull_request_target:");
 
     if (/pull_request:\s*\n/u.test(ciWorkflow)) {
