@@ -23,6 +23,7 @@ describe("workflow trust boundaries", () => {
 
   it("does not expose a self-hosted runner to fork pull requests", () => {
     expect(ciWorkflow).toContain("pull_request:");
+    expect(ciWorkflow).toContain("workflow_dispatch:");
     expect(ciWorkflow).toContain("runs-on: [self-hosted, Linux, X64]");
     expect(ciWorkflow).not.toContain("pull_request_target:");
 
