@@ -17,6 +17,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
   - (placeholder)
 
 - **Security**
+  - Refreshed the lockfile to remove vulnerable ESLint, minimatch, brace-expansion, and glob transitive dependencies.
   - (placeholder)
 
 ## [1.1.3] - 2026-08-31
