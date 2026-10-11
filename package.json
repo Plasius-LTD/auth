@@ -57,7 +57,7 @@
   },
   "homepage": "https://github.com/Plasius-LTD/auth#readme",
   "dependencies": {
-    "@plasius/entity-manager": "^1.2.5"
+    "@plasius/entity-manager": "^1.2.6"
   },
   "peerDependencies": {
     "react": "^19"
