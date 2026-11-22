@@ -6,6 +6,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+- **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [1.1.8] - 2026-11-22
+
 - Refresh supported npm dependency and security tooling baselines; preserve runtime API contracts (weekly maintenance, 2026-11-22).
 
 - Refresh npm dependency lockfile to current supported stable versions (weekly maintenance, 2026-10-25). Refresh published Plasius package baselines after upstream releases.
@@ -401,7 +415,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 > Tip: Use Conventional Commits in PR titles/bodies to make changelog updates easier.
 
-[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.1.7...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.1.8...HEAD
 [1.0.2]: https://github.com/Plasius-LTD/auth/compare/858d03c...fdf8d70
 [1.0.1]: https://github.com/Plasius-LTD/auth/compare/v1.0.0...858d03c
 [1.0.0]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.0
@@ -426,3 +440,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [1.1.5]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.5
 [1.1.6]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.6
 [1.1.7]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.7
+[1.1.8]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.8
