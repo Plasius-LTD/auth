@@ -6,6 +6,20 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 ## [Unreleased]
 
+- **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [1.1.9] - 2026-11-22
+
 - Consume the verified upstream security releases from the weekly dependency rollout; retain existing runtime contracts.
 
 - **Added**
@@ -417,7 +431,7 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 
 > Tip: Use Conventional Commits in PR titles/bodies to make changelog updates easier.
 
-[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.1.8...HEAD
+[Unreleased]: https://github.com/Plasius-LTD/auth/compare/v1.1.9...HEAD
 [1.0.2]: https://github.com/Plasius-LTD/auth/compare/858d03c...fdf8d70
 [1.0.1]: https://github.com/Plasius-LTD/auth/compare/v1.0.0...858d03c
 [1.0.0]: https://github.com/Plasius-LTD/auth/releases/tag/v1.0.0
@@ -443,3 +457,4 @@ The format is based on **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 [1.1.6]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.6
 [1.1.7]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.7
 [1.1.8]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.8
+[1.1.9]: https://github.com/Plasius-LTD/auth/releases/tag/v1.1.9
